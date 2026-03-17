@@ -3,7 +3,7 @@ Output assets/demo.gif
 Set Shell fish
 Set FontSize 16
 Set Width 600
-Set Height 100
+Set Height 120
 Set Theme "Catppuccin Mocha"
 Set Padding 20
 
