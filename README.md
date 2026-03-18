@@ -30,7 +30,7 @@ after --help
 after 10m
 ```
 
-If `after` is not found after install, see [Troubleshooting](#troubleshooting).
+If `after` is not found once installed, see [Troubleshooting](#troubleshooting).
 
 ## Platform Support
 
