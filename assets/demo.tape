@@ -9,15 +9,15 @@ Set Padding 40
 
 Sleep 1s
 Type "after 3s"
-Sleep 500ms
+Sleep 250ms
 Enter
 Sleep 4.5s
 Sleep 1s
 
 Ctrl+L
 Sleep 1s
-Type "after 1pm"
-Sleep 500ms
+Type "after 3pm"
+Sleep 250ms
 Enter
 Sleep 3s
 Ctrl+C
