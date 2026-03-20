@@ -1114,7 +1114,7 @@ func TestRunTimerReturnsCancelCause(t *testing.T) {
 		interactive:      false,
 		supportsAdvanced: false,
 	}
-	err := runTimer(ctx, time.Hour, status, false, false, false, false, "")
+	err := runTimer(ctx, cancel, time.Hour, status, false, false, false, false, "")
 	if err == nil {
 		t.Fatal("runTimer() error = nil, want cancellation cause")
 	}
@@ -1138,12 +1138,13 @@ func newCapturedStatus(interactive bool, supportsAdvanced bool) (*bytes.Buffer, 
 }
 
 func TestRunTimerWithAlarmStarter_ForceAlarmInNonTTY(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 	alarmCalls := 0
 
 	status := newStatusDisplay(io.Discard, false, false)
 
-	err := runTimerWithAlarmStarter(ctx, 0, status, false, true, true, false, "", func(string) {
+	err := runTimerWithAlarmStarter(ctx, cancel, 0, status, false, true, true, false, "", func(string) {
 		alarmCalls++
 	})
 	if err != nil {
@@ -1155,8 +1156,6 @@ func TestRunTimerWithAlarmStarter_ForceAlarmInNonTTY(t *testing.T) {
 }
 
 func TestRunTimerWithAlarmStarter_DefaultAlarmRequiresBothStreamsTTY(t *testing.T) {
-	ctx := context.Background()
-
 	tests := []struct {
 		name                   string
 		statusInteractive      bool
@@ -1188,10 +1187,13 @@ func TestRunTimerWithAlarmStarter_DefaultAlarmRequiresBothStreamsTTY(t *testing.
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithCancelCause(context.Background())
+			defer cancel(nil)
+
 			alarmCalls := 0
 			status := newStatusDisplay(io.Discard, tc.statusInteractive, false)
 
-			err := runTimerWithAlarmStarter(ctx, 0, status, tc.sideEffectsInteractive, false, false, false, "", func(string) {
+			err := runTimerWithAlarmStarter(ctx, cancel, 0, status, tc.sideEffectsInteractive, false, false, false, "", func(string) {
 				alarmCalls++
 			})
 			if err != nil {
@@ -1394,10 +1396,11 @@ func TestSleepInhibitorArgs(t *testing.T) {
 func TestRunTimerWithAlarmStarter_NonTTYLifecycleOutput(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 	out, status := newCapturedStatus(false, false)
 
-	err := runTimerWithAlarmStarter(ctx, 0, status, false, false, false, false, "", func(string) {})
+	err := runTimerWithAlarmStarter(ctx, cancel, 0, status, false, false, false, false, "", func(string) {})
 	if err != nil {
 		t.Fatalf("runTimerWithAlarmStarter() error = %v, want nil", err)
 	}
@@ -1411,10 +1414,11 @@ func TestRunTimerWithAlarmStarter_NonTTYLifecycleOutput(t *testing.T) {
 func TestRunTimerWithAlarmStarter_NonTTYQuietSuppressesLifecycle(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 	out, status := newCapturedStatus(false, false)
 
-	err := runTimerWithAlarmStarter(ctx, 0, status, false, true, false, false, "", func(string) {})
+	err := runTimerWithAlarmStarter(ctx, cancel, 0, status, false, true, false, false, "", func(string) {})
 	if err != nil {
 		t.Fatalf("runTimerWithAlarmStarter() error = %v, want nil", err)
 	}
@@ -1431,7 +1435,7 @@ func TestRunTimerWithAlarmStarter_NonTTYCancelLifecycleOutput(t *testing.T) {
 
 	out, status := newCapturedStatus(false, false)
 
-	err := runTimerWithAlarmStarter(ctx, 10*time.Second, status, false, false, false, false, "", func(string) {})
+	err := runTimerWithAlarmStarter(ctx, cancel, 10*time.Second, status, false, false, false, false, "", func(string) {})
 	if err == nil {
 		t.Fatal("runTimerWithAlarmStarter() error = nil, want cancellation cause")
 	}
@@ -1445,10 +1449,11 @@ func TestRunTimerWithAlarmStarter_NonTTYCancelLifecycleOutput(t *testing.T) {
 func TestRunTimerWithAlarmStarter_InteractiveWritesToStatusWriter(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 	out, status := newCapturedStatus(true, false)
 
-	err := runTimerWithAlarmStarter(ctx, 0, status, false, false, false, false, "", func(string) {})
+	err := runTimerWithAlarmStarter(ctx, cancel, 0, status, false, false, false, false, "", func(string) {})
 	if err != nil {
 		t.Fatalf("runTimerWithAlarmStarter() error = %v, want nil", err)
 	}
@@ -1460,15 +1465,16 @@ func TestRunTimerWithAlarmStarter_InteractiveWritesToStatusWriter(t *testing.T) 
 func TestRunTimerWithAlarmStarter_InteractiveQuietClearsStatusLine(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
 	out, status := newCapturedStatus(true, true)
 
-	err := runTimerWithAlarmStarter(ctx, 0, status, false, true, false, false, "", func(string) {})
+	err := runTimerWithAlarmStarter(ctx, cancel, 0, status, false, true, false, false, "", func(string) {})
 	if err != nil {
 		t.Fatalf("runTimerWithAlarmStarter() error = %v, want nil", err)
 	}
-	if got := out.String(); got != "\r\033[K" {
-		t.Fatalf("runTimerWithAlarmStarter() output = %q, want %q", got, "\r\\033[K")
+	if got := out.String(); got != "\r\033[K00:00:00\r\033[K" {
+		t.Fatalf("runTimerWithAlarmStarter() output = %q, want %q", got, "\r\\033[K00:00:00\r\\033[K")
 	}
 }
 

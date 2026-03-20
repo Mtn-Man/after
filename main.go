@@ -30,6 +30,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -162,7 +163,7 @@ func main() {
 	}
 	sideEffectsInteractive := stdoutIsTTY()
 
-	if err := runTimer(ctx, inv.duration, status, sideEffectsInteractive, inv.quiet, inv.forceAlarm, inv.forceAwake, inv.soundFile); err != nil {
+	if err := runTimer(ctx, cancel, inv.duration, status, sideEffectsInteractive, inv.quiet, inv.forceAlarm, inv.forceAwake, inv.soundFile); err != nil {
 		os.Exit(exitCodeForCancelError(err))
 	}
 }
@@ -657,27 +658,17 @@ func isPotentialNegativeDuration(arg string) bool {
 	return (next >= '0' && next <= '9') || next == '.'
 }
 
-func runTimer(ctx context.Context, duration time.Duration, status statusDisplay, sideEffectsInteractive bool, quiet bool, forceAlarm bool, forceAwake bool, soundFile string) error {
-	return runTimerWithAlarmStarter(ctx, duration, status, sideEffectsInteractive, quiet, forceAlarm, forceAwake, soundFile, startAlarmProcess)
+func runTimer(ctx context.Context, cancel context.CancelCauseFunc, duration time.Duration, status statusDisplay, sideEffectsInteractive bool, quiet bool, forceAlarm bool, forceAwake bool, soundFile string) error {
+	return runTimerWithAlarmStarter(ctx, cancel, duration, status, sideEffectsInteractive, quiet, forceAlarm, forceAwake, soundFile, startAlarmProcess)
 }
 
-func runTimerWithAlarmStarter(ctx context.Context, duration time.Duration, status statusDisplay, sideEffectsInteractive bool, quiet bool, forceAlarm bool, forceAwake bool, soundFile string, alarmStarter func(string)) error {
+func runTimerWithAlarmStarter(ctx context.Context, cancel context.CancelCauseFunc, duration time.Duration, status statusDisplay, sideEffectsInteractive bool, quiet bool, forceAlarm bool, forceAwake bool, soundFile string, alarmStarter func(string)) error {
 	bothStreamsInteractive := sideEffectsInteractive && status.interactive
 
-	var sleepInhibitor *exec.Cmd
 	if shouldStartSleepInhibitor(runtime.GOOS, sideEffectsInteractive, status.interactive, forceAwake) {
 		pid := strconv.Itoa(os.Getpid())
-		sleepInhibitor = quietCmd("caffeinate", sleepInhibitorArgs(sideEffectsInteractive, status.interactive, pid)...)
-		if err := sleepInhibitor.Start(); err != nil {
-			sleepInhibitor = nil
-		} else {
-			defer func() {
-				if sleepInhibitor.Process != nil {
-					_ = sleepInhibitor.Process.Kill()
-				}
-				_ = sleepInhibitor.Wait()
-			}()
-		}
+		cmd := quietCmd("caffeinate", sleepInhibitorArgs(sideEffectsInteractive, status.interactive, pid)...)
+		go cmd.Run() // best-effort; -w <pid> ensures caffeinate exits when we do
 	}
 
 	deadline := time.Now().Add(duration)
@@ -695,9 +686,52 @@ func runTimerWithAlarmStarter(ctx context.Context, duration time.Duration, statu
 		tickC = ticker.C
 	}
 
+	if status.interactive {
+		renderInteractiveCountdown(status, formatRemainingTime(duration), quiet)
+	}
+
+	var keyCh <-chan struct{}
+	restoreTerminal := func() {}
+	if status.interactive && stdinIsTTY() {
+		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+		if err == nil {
+			var once sync.Once
+			restoreTerminal = func() {
+				once.Do(func() { term.Restore(int(os.Stdin.Fd()), oldState) })
+			}
+			defer restoreTerminal()
+
+			ch := make(chan struct{}, 1)
+			keyCh = ch
+			go func() {
+				buf := make([]byte, 1)
+				for {
+					n, err := os.Stdin.Read(buf)
+					if err != nil || n == 0 {
+						return
+					}
+					b := buf[0]
+					if b == 'q' || b == 'Q' || b == 0x1B || b == 0x03 || b == 0x04 {
+						select {
+						case ch <- struct{}{}:
+						default:
+						}
+						return
+					}
+				}
+			}()
+		}
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
+			printCancelled(status, quiet)
+			return context.Cause(ctx)
+
+		case <-keyCh:
+			restoreTerminal()
+			cancel(signalCause{sig: os.Interrupt})
 			printCancelled(status, quiet)
 			return context.Cause(ctx)
 
@@ -836,6 +870,10 @@ func supportsAdvancedTerminal(termName string) bool {
 
 func isTerminal(fd uintptr) bool {
 	return term.IsTerminal(int(fd))
+}
+
+func stdinIsTTY() bool {
+	return isTerminal(os.Stdin.Fd())
 }
 
 // startAlarmProcess launches a detached child process that plays alert audio.
