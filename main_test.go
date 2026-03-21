@@ -217,6 +217,16 @@ func TestAwakeUnsupportedWarning(t *testing.T) {
 	}
 }
 
+func TestSoundFileWarning(t *testing.T) {
+	t.Parallel()
+
+	want := "Warning: sound file not found or unreadable: ~/sounds/bell.mp3; using default alarm"
+	got := soundFileWarning("~/sounds/bell.mp3")
+	if got != want {
+		t.Fatalf("soundFileWarning() = %q, want %q", got, want)
+	}
+}
+
 func TestRenderInvocationError(t *testing.T) {
 	t.Parallel()
 

@@ -132,7 +132,11 @@ func main() {
 	}
 
 	if inv.soundFile != "" {
+		original := inv.soundFile
 		inv.soundFile = resolveUsableSoundFilePath(inv.soundFile)
+		if inv.soundFile == "" {
+			fmt.Fprintln(os.Stderr, soundFileWarning(original))
+		}
 	}
 
 	ctx, cancel := context.WithCancelCause(context.Background())
@@ -176,6 +180,10 @@ func exitCodeForCancelError(err error) int {
 
 func awakeUnsupportedWarning() string {
 	return "Warning: --caffeinate sleep inhibition is only supported on darwin; continuing without sleep inhibition"
+}
+
+func soundFileWarning(path string) string {
+	return fmt.Sprintf("Warning: sound file not found or unreadable: %s; using default alarm", path)
 }
 
 func renderInvocationError(err error) (string, int) {
