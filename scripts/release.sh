@@ -146,6 +146,7 @@ echo "  Version : $VERSION"
 echo "  Dist dir: $DIST_DIR"
 echo "  Commits will be tagged and pushed to origin/main."
 echo "  A GitHub release will be created with the above artifacts."
+echo "  The Homebrew formula will be updated and committed (not pushed)."
 echo ""
 
 # Determine release notes file
@@ -200,7 +201,7 @@ gh "${GH_ARGS[@]}"
 success "GitHub release $VERSION published"
 
 # ---------------------------------------------------------------------------
-# Homebrew reminder
+# Update Homebrew formula
 # ---------------------------------------------------------------------------
 
 DARWIN_AMD64_SHA="$(awk '/darwin_amd64/ {print $1}' "${DIST_DIR}/checksums.txt")"
@@ -208,15 +209,33 @@ DARWIN_ARM64_SHA="$(awk '/darwin_arm64/ {print $1}' "${DIST_DIR}/checksums.txt")
 LINUX_AMD64_SHA="$(awk '/linux_amd64/  {print $1}' "${DIST_DIR}/checksums.txt")"
 LINUX_ARM64_SHA="$(awk '/linux_arm64/  {print $1}' "${DIST_DIR}/checksums.txt")"
 
-printf '\n\033[1;33m==> Homebrew formula update required (homebrew-tools/Formula/after.rb)\033[0m\n'
-printf '  version "%s"\n\n' "${VERSION#v}"
-printf '  on_macos / on_intel  url  .../after_%s_darwin_amd64.tar.gz\n' "$VERSION"
-printf '                       sha256 "%s"\n\n' "$DARWIN_AMD64_SHA"
-printf '  on_macos / on_arm    url  .../after_%s_darwin_arm64.tar.gz\n' "$VERSION"
-printf '                       sha256 "%s"\n\n' "$DARWIN_ARM64_SHA"
-printf '  on_linux / on_intel  url  .../after_%s_linux_amd64.tar.gz\n' "$VERSION"
-printf '                       sha256 "%s"\n\n' "$LINUX_AMD64_SHA"
-printf '  on_linux / on_arm    url  .../after_%s_linux_arm64.tar.gz\n' "$VERSION"
-printf '                       sha256 "%s"\n\n' "$LINUX_ARM64_SHA"
-printf '  test: assert_match "after %s"\n' "$VERSION"
-printf '\nCommit message: after: update formula to %s\n' "$VERSION"
+FORMULA_REPO="$HOME/dev/homebrew-tools"
+FORMULA="$FORMULA_REPO/Formula/after.rb"
+
+info "Updating Homebrew formula"
+
+[[ -f "$FORMULA" ]] || err "Homebrew formula not found: $FORMULA"
+
+BARE_VERSION="${VERSION#v}"
+OLD_BARE_VERSION="$(grep -m1 'version "' "$FORMULA" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+
+OLD_DARWIN_AMD64_SHA="$(awk '/darwin_amd64/{f=1} f && /sha256/{match($0,/sha256 "([^"]+)"/,a); print a[1]; f=0}' "$FORMULA")"
+OLD_DARWIN_ARM64_SHA="$(awk '/darwin_arm64/{f=1} f && /sha256/{match($0,/sha256 "([^"]+)"/,a); print a[1]; f=0}' "$FORMULA")"
+OLD_LINUX_AMD64_SHA="$(awk '/linux_amd64/{f=1} f && /sha256/{match($0,/sha256 "([^"]+)"/,a); print a[1]; f=0}' "$FORMULA")"
+OLD_LINUX_ARM64_SHA="$(awk '/linux_arm64/{f=1} f && /sha256/{match($0,/sha256 "([^"]+)"/,a); print a[1]; f=0}' "$FORMULA")"
+
+sed -i '' \
+  -e "s/version \"${OLD_BARE_VERSION}\"/version \"${BARE_VERSION}\"/" \
+  -e "s/v${OLD_BARE_VERSION}/v${BARE_VERSION}/g" \
+  -e "s/${OLD_DARWIN_AMD64_SHA}/${DARWIN_AMD64_SHA}/" \
+  -e "s/${OLD_DARWIN_ARM64_SHA}/${DARWIN_ARM64_SHA}/" \
+  -e "s/${OLD_LINUX_AMD64_SHA}/${LINUX_AMD64_SHA}/" \
+  -e "s/${OLD_LINUX_ARM64_SHA}/${LINUX_ARM64_SHA}/" \
+  "$FORMULA"
+
+success "Homebrew formula updated: $FORMULA"
+
+git -C "$FORMULA_REPO" add "$FORMULA"
+git -C "$FORMULA_REPO" commit -m "after: update formula to ${VERSION}"
+
+success "Homebrew formula committed (not pushed)"
