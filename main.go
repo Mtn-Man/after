@@ -112,7 +112,11 @@ var cliFlags = []cliFlag{
 
 func main() {
 	if shouldRunInternalAlarm(os.Args) {
-		runAlarmWorker()
+		soundFile := ""
+		if len(os.Args) >= 3 {
+			soundFile = os.Args[2]
+		}
+		runAlarmWorker(soundFile)
 		return
 	}
 

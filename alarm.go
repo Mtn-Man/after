@@ -13,7 +13,7 @@ import (
 // shouldRunInternalAlarm reports whether to run as an internal alarm worker.
 // Internal mode is activated only by an exact hidden sentinel argument.
 func shouldRunInternalAlarm(args []string) bool {
-	return (len(args) == 2 || len(args) == 3) && args[1] == internalAlarmArg
+	return len(args) >= 2 && args[1] == internalAlarmArg
 }
 
 // startAlarmProcess launches a detached child process that plays alert audio.
@@ -40,11 +40,7 @@ func newInternalAlarmCmd(exe string, soundFile string) *exec.Cmd {
 }
 
 // runAlarmWorker plays an available alarm backend 4 times with 100ms pauses.
-func runAlarmWorker() {
-	soundFile := ""
-	if len(os.Args) == 3 {
-		soundFile = os.Args[2]
-	}
+func runAlarmWorker(soundFile string) {
 	playAlarmAttempts(resolveAlarmCommands(soundFile), 4, 100*time.Millisecond, runAlarmCommand)
 }
 

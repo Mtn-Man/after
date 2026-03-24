@@ -43,9 +43,9 @@ func TestShouldRunInternalAlarm(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "normal mode when hidden worker arg has trailing args",
+			name: "worker mode with extra trailing args",
 			args: []string{"after", internalAlarmArg, "path/to/sound.mp3", "1s"},
-			want: false,
+			want: true,
 		},
 	}
 
