@@ -1573,8 +1573,8 @@ func TestRunTimerWithAlarmStarter_InteractiveQuietClearsStatusLine(t *testing.T)
 	if err != nil {
 		t.Fatalf("runTimerWithAlarmStarter() error = %v, want nil", err)
 	}
-	if got := out.String(); got != "\033]0;00:00:00\007\r\033[K00:00:00\r\033[K" {
-		t.Fatalf("runTimerWithAlarmStarter() output = %q, want %q", got, "\033]0;00:00:00\007\r\\033[K00:00:00\r\\033[K")
+	if got := out.String(); got != "\033]0;0\007\r\033[K0\r\033[K" {
+		t.Fatalf("runTimerWithAlarmStarter() output = %q, want %q", got, "\033]0;0\007\r\\033[K0\r\\033[K")
 	}
 }
 

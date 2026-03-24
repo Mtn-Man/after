@@ -28,7 +28,13 @@ func formatRemainingTime(remaining time.Duration) string {
 	h := totalSeconds / 3600
 	m := (totalSeconds % 3600) / 60
 	s := totalSeconds % 60
-	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+	if h > 0 {
+		return fmt.Sprintf("%d:%02d:%02d", h, m, s)
+	}
+	if m > 0 {
+		return fmt.Sprintf("%d:%02d", m, s)
+	}
+	return fmt.Sprintf("%d", s)
 }
 
 func printComplete(status statusDisplay, quiet bool) {
