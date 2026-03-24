@@ -87,7 +87,7 @@ func parseInvocation(args []string) (invocation, error) {
 		return invocation{mode: modeHelp}, nil
 	}
 	if hasVersion {
-		return invocation{mode: modeVersion, quiet: inv.quiet, forceAlarm: inv.forceAlarm, forceAwake: inv.forceAwake}, nil
+		return invocation{mode: modeVersion}, nil
 	}
 	if durationToken == "" {
 		return invocation{mode: modeRun}, errUsage
