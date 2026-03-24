@@ -16,7 +16,7 @@ Sleep 1s
 
 Ctrl+L
 Sleep 1s
-Type "after 3pm"
+Type "after 8am"
 Sleep 250ms
 Enter
 Sleep 3s
