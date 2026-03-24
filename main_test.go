@@ -102,12 +102,11 @@ func TestRenderHelpText(t *testing.T) {
 	want := usageText + "\n\nFlags:\n" +
 		"  -h, --help       Show help and exit\n" +
 		"  -v, --version    Show version and exit\n" +
-		"  -q, --quiet      TTY: inline countdown only; non-TTY: suppress lifecycle/completion/cancel/alarm\n" +
+		"  -q, --quiet      Suppress alarm and status messages; countdown and title bar unaffected in TTY mode\n" +
 		"  -s, --sound      Force alarm playback on completion even in quiet/non-TTY mode\n" +
 		"  -f, --sound-file Path to a custom audio file to play on completion (implies --sound)\n" +
 		"  -t, --no-title   Disable terminal title bar updates\n" +
-		"  -c, --caffeinate Force sleep inhibition attempt even in non-TTY mode (darwin only)\n\n" +
-		"Note: -- ends option parsing; subsequent tokens are treated as positional arguments.\n"
+		"  -c, --caffeinate Force sleep inhibition attempt even in non-TTY mode (macOS only)\n"
 
 	got := renderHelpText()
 	if got != want {

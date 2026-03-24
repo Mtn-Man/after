@@ -97,7 +97,7 @@ func renderHelpText() string {
 			b.WriteByte('\n')
 		}
 	}
-	b.WriteString("\n\nNote: -- ends option parsing; subsequent tokens are treated as positional arguments.\n")
+	b.WriteString("\n")
 
 	return b.String()
 }

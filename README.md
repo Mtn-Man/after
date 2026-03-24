@@ -1,7 +1,7 @@
 # after
 
-A fast command-line countdown timer with live terminal feedback, graceful cancellation,
-and optional completion alarms.
+A fast command-line countdown timer with live terminal feedback,
+graceful cancellation, and optional completion alarms.
 
 <img src="assets/demo.gif" width="600" alt="after demo" />
 
@@ -11,10 +11,12 @@ and optional completion alarms.
 - Graceful cancellation via Ctrl+C, or `q` / Esc / Ctrl+D in interactive mode
 - Audio alert on completion (best-effort, platform-specific backend)
 - Count down to a time of day in 24-hour or 12-hour AM/PM format
-- Optional `-q`/`--quiet` to suppress alarm, completion text, and lifecycle output
-- Optional `-t`/`--no-title` to suppress terminal title bar updates (useful in tmux/screen environments)
+- Optional `-q`/`--quiet` to suppress alarm and status output
+- Optional `-t`/`--no-title` to suppress terminal title bar updates
+  (useful in tmux/screen environments)
 - Optional `-s`/`--sound` to force alarm playback on completion
-- Optional `-c`/`--caffeinate` to force sleep-inhibition attempt in non-TTY mode (macOS only)
+- Optional `-c`/`--caffeinate` to force sleep inhibition in non-TTY
+  mode (macOS only)
 - Ceiling-based display (never shows 00:00:00 while time remains)
 - Non-TTY lifecycle logging by default (`started`/`complete`/`cancelled`)
 - Clean, minimal interface
@@ -156,6 +158,8 @@ after 90m       # 90 minutes
 after 14:30     # count down to 2:30 PM today (or tomorrow if already past)
 after 9:00      # count down to 9:00 AM today (or tomorrow if already past)
 after 9am       # count down to 9:00 AM (12-hour shorthand)
+after 9a        # same as 9am (single-letter AM/PM suffix)
+after 9p        # count down to 9:00 PM (single-letter shorthand)
 after 2:30pm    # count down to 2:30 PM
 after 2:30 PM   # space-separated AM/PM suffix
 after noon      # count down to noon
@@ -169,39 +173,46 @@ after -s 5m     # Force alarm playback even in quiet/non-TTY mode
 after -qs 5m    # Force alarm + quiet (no messages, title bar still updates)
 after -qts 5m   # Force alarm + quiet + no title bar
 after --sound-file ~/Sounds/bell.mp3 5m      # Play custom sound on completion
-after -f /System/Library/Sounds/Funk.aiff 5  # macOS: play a built-in alert sound
+after -f /System/Library/Sounds/Funk.aiff 5  # macOS built-in alert sound
 after -f "~/Music/Alarm Sounds/bell.mp3" 5m  # Quoted path with spaces
-after -c 10m 2> /tmp/after.log               # Force macOS sleep inhibition in non-TTY
+after -c 10m 2> /tmp/after.log               # Force sleep inhibition in non-TTY
 after 10m 2> /tmp/after.status               # Capture lifecycle output
 after -s 10m 2> /dev/null &                  # backgrounded with alarm
 ```
 
-Durations can be expressed as seconds (`30`, `90`), decimals (`1.5`), or with
-unit suffixes (`30s`, `10m`, `1.5h`, `1h30m`). Bare integers are treated as seconds.
+Durations can be expressed as seconds (`30`, `90`), decimals (`1.5`),
+or with unit suffixes (`30s`, `10m`, `1.5h`, `1h30m`). Bare integers
+are treated as seconds.
 
-You can also pass a time of day instead of a duration — after counts down to the
-next occurrence of that time, wrapping to the following day if it has already passed.
-Both 24-hour (`14:30`) and 12-hour AM/PM formats (`2:30pm`, `"2:30 PM"`) are
-supported, as are bare hour shorthands (`9am`). `noon` and `midnight` are also
-accepted as named aliases (equivalent to `12pm` and `12am`).
+You can also pass a time of day instead of a duration — after counts
+down to the next occurrence of that time, wrapping to the following day
+if it has already passed. Both 24-hour (`14:30`) and 12-hour AM/PM
+formats (`2:30pm`, `"2:30 PM"`) are supported, as are bare hour
+shorthands (`9am`, `9a`, `9p`). `noon` and `midnight` are also accepted
+as named aliases (equivalent to `12pm` and `12am`).
 
 ### Flags
 
 - `-h`, `--help`: Show help and exit
 - `-v`, `--version`: Show version and exit
-- `-q`, `--quiet`: TTY: suppress alarm, completion text, and cancel text (inline
-  countdown still runs, title bar still updates). Non-TTY: suppress lifecycle status
-  output. Combine with `-s` (`-qs`) to keep the alarm while suppressing other output.
-- `-t`, `--no-title`: Suppress terminal title bar updates. Useful in multiplexers
-  like tmux or screen where title changes affect window names. Combine with `-q`
-  (`-qt`) to suppress both.
-- `-s`, `--sound`: Force alarm playback on completion even in `--quiet` or non-TTY mode
-- `-f`, `--sound-file <path>`: Path to a custom audio file to play on completion
-  (implies `--sound`; supported on macOS, Linux, and FreeBSD). If the file cannot
-  be resolved or used, after falls back to the default alarm backend.
-  OpenBSD/NetBSD always use the default alarm backend.
-- `-c`, `--caffeinate`: Force sleep-inhibition attempt even in non-TTY mode (macOS only)
-- `--`: End option parsing; all following tokens are treated as positional arguments
+- `-q`, `--quiet`: TTY: suppress alarm, completion text, and cancel
+  text (inline countdown still runs, title bar still updates). Non-TTY:
+  suppress lifecycle status output. Combine with `-s` (`-qs`) to keep
+  the alarm while suppressing other output.
+- `-t`, `--no-title`: Suppress terminal title bar updates. Useful in
+  multiplexers like tmux or screen where title changes affect window
+  names. Combine with `-q` (`-qt`) to suppress both.
+- `-s`, `--sound`: Force alarm playback on completion even in
+  `--quiet` or non-TTY mode
+- `-f`, `--sound-file <path>`: Path to a custom audio file to play on
+  completion (implies `--sound`; supported on macOS, Linux, and
+  FreeBSD). If the file cannot be resolved or used, after falls back to
+  the default alarm backend. OpenBSD/NetBSD always use the default
+  alarm backend.
+- `-c`, `--caffeinate`: Force sleep-inhibition attempt even in non-TTY
+  mode (macOS only)
+- `--`: End option parsing; all following tokens are treated as
+  positional arguments
 
 ## Requirements
 
@@ -210,12 +221,13 @@ accepted as named aliases (equivalent to `12pm` and `12am`).
 
 ## Troubleshooting
 
-- `after` not found after install (`after: command not found`): Ensure your install
-  location is in `PATH` (`/opt/homebrew/bin` or `/usr/local/bin` for Homebrew,
-  `$(go env GOPATH)/bin` or `GOBIN` for `go install`, `/usr/local/bin` or
-  `~/.local/bin` for manual install), then restart or reload your shell.
-- `Permission denied` while installing to `/usr/local/bin`: Use `sudo install ...`
-  or install to `~/.local/bin` instead.
+- `after` not found after install (`after: command not found`): Ensure
+  your install location is in `PATH` (`/opt/homebrew/bin` or
+  `/usr/local/bin` for Homebrew, `$(go env GOPATH)/bin` or `GOBIN` for
+  `go install`, `/usr/local/bin` or `~/.local/bin` for manual install),
+  then restart or reload your shell.
+- `Permission denied` while installing to `/usr/local/bin`: Use
+  `sudo install ...` or install to `~/.local/bin` instead.
 - Homebrew command ambiguity with an existing `after` formula: use
   `brew install Mtn-Man/tools/after` and `brew info Mtn-Man/tools/after`.
 
@@ -223,16 +235,19 @@ accepted as named aliases (equivalent to `12pm` and `12am`).
 
 Status output is written to `stderr`, leaving `stdout` clean for pipeline use.
 
-The countdown updates every 500ms in `HH:MM:SS` format. In a normal terminal session,
-the title bar also updates alongside the inline countdown. On completion, `after complete`
-is printed and an audio alert plays. Press Ctrl+C at any time to cancel gracefully.
-In an interactive terminal session, `q`, Esc, and Ctrl+D also cancel.
+The countdown updates every 500ms, showing only significant fields
+(`1:23` for 83 seconds, `1:02:03` for just over an hour). In a normal
+terminal session, the title bar also updates alongside the inline
+countdown. On completion, `after complete` is printed and an audio
+alert plays. Press Ctrl+C at any time to cancel gracefully. In an
+interactive terminal session, `q`, Esc, and Ctrl+D also cancel.
 
-With `-q` / `--quiet`, the alarm, completion text, and cancel text are suppressed;
-the inline countdown and title bar updates continue. Combine with `-s` to keep the
-alarm while still suppressing other output. Use `-t` / `--no-title` to suppress
-title bar updates independently — handy in tmux or screen sessions. Combine `-q`
-and `-t` (`-qt`) to suppress both.
+With `-q` / `--quiet`, the alarm, completion text, and cancel text are
+suppressed; the inline countdown and title bar updates continue. Combine
+with `-s` to keep the alarm while still suppressing other output. Use
+`-t` / `--no-title` to suppress title bar updates independently —
+handy in tmux or screen sessions. Combine `-q` and `-t` (`-qt`) to
+suppress both.
 
 When output is redirected (for example `2> /tmp/after.log`), the countdown is
 suppressed and only lifecycle lines are emitted: `after: started (...)`,
