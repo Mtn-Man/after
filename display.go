@@ -92,12 +92,12 @@ func renderHelpText() string {
 		if flag.short == "" {
 			label = "    " + flag.long
 		}
-		fmt.Fprintf(&b, "  %-17s%s", label, flag.description)
+		fmt.Fprintf(&b, "  %-18s%s", label, flag.description)
 		if i < len(cliFlags)-1 {
 			b.WriteByte('\n')
 		}
 	}
-	b.WriteString("\n")
+	b.WriteString("\n\nCancel: q, esc, ctrl+c, or ctrl+d\n")
 
 	return b.String()
 }

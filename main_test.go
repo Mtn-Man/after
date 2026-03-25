@@ -50,7 +50,6 @@ func TestShouldRunInternalAlarm(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			got := shouldRunInternalAlarm(tc.args)
@@ -100,13 +99,14 @@ func TestRenderHelpText(t *testing.T) {
 	t.Parallel()
 
 	want := usageText + "\n\nFlags:\n" +
-		"  -h, --help       Show help and exit\n" +
-		"  -v, --version    Show version and exit\n" +
-		"  -q, --quiet      Suppress alarm and status messages; countdown and title bar unaffected in TTY mode\n" +
-		"  -s, --sound      Force alarm playback on completion even in quiet/non-TTY mode\n" +
-		"  -f, --sound-file Path to a custom audio file to play on completion (implies --sound)\n" +
-		"  -t, --no-title   Disable terminal title bar updates\n" +
-		"  -c, --caffeinate Force sleep inhibition attempt even in non-TTY mode (macOS only)\n"
+		"  -h, --help        Show help and exit\n" +
+		"  -v, --version     Show version and exit\n" +
+		"  -q, --quiet       Suppress alarm and status messages\n" +
+		"  -t, --no-title    Disable terminal title bar updates\n" +
+		"  -s, --sound       Force alarm even in quiet or non-TTY mode\n" +
+		"  -f, --sound-file  Custom audio file for completion alarm (implies --sound)\n" +
+		"  -c, --caffeinate  Prevent sleep even in non-TTY mode (macOS only)\n" +
+		"\nCancel: q, esc, ctrl+c, or ctrl+d\n"
 
 	got := renderHelpText()
 	if got != want {
@@ -135,7 +135,6 @@ func TestFormatVersionLine(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -195,7 +194,6 @@ func TestResolveVersion(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -275,7 +273,6 @@ func TestRenderInvocationError(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -381,7 +378,6 @@ func runParseInvocationCases(t *testing.T, tests []parseInvocationTestCase) {
 	t.Helper()
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -564,7 +560,6 @@ func TestIsBareDecimalSecondsToken(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -972,7 +967,6 @@ func TestParseWallClockTime(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1034,7 +1028,6 @@ func TestParseTimeField(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1065,7 +1058,6 @@ func TestAlarmCandidatesForGOOS(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.goos, func(t *testing.T) {
 			t.Parallel()
 
@@ -1190,7 +1182,6 @@ func TestExitCodeForCancelError(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1282,7 +1273,6 @@ func TestRunTimerWithAlarmStarter_DefaultAlarmRequiresBothStreamsTTY(t *testing.
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1360,7 +1350,6 @@ func TestShouldTriggerAlarm(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1434,7 +1423,6 @@ func TestShouldStartSleepInhibitor(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1480,7 +1468,6 @@ func TestSleepInhibitorArgs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1611,7 +1598,6 @@ func TestShouldPrintLifecycleStart(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1650,7 +1636,6 @@ func TestFormatLifecycleStarted(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			got := formatLifecycleStarted(tc.duration, tc.wallClockTarget)
@@ -1676,7 +1661,6 @@ func TestSupportsAdvancedTerminal(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1776,7 +1760,6 @@ func TestStripAMPM(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1830,7 +1813,6 @@ func TestRenderInteractiveCountdown(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1871,7 +1853,6 @@ func TestApplyAMPM(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1911,7 +1892,6 @@ func TestIsAMPMToken(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.token, func(t *testing.T) {
 			t.Parallel()
 

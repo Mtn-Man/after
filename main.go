@@ -32,7 +32,11 @@ import (
 
 const internalAlarmArg = "__after_internal_alarm_worker"
 const (
-	usageText             = "Usage: after [options] <duration|time>\nExamples: after 30, after 30s, after 10m, after 1.5h, after --quiet 5m, after 14:30, after 9am, after 9p, after 2:30 PM"
+	usageText = "Usage: after [options] <duration|time>\n\nExamples:\n" +
+		"  after 30              after 9am\n" +
+		"  after 10m             after 9p\n" +
+		"  after 1.5h            after 14:30\n" +
+		"  after --quiet 5m      after 2:30 PM"
 	defaultVersion        = "dev"
 	develBuildInfoVersion = "(devel)"
 )
@@ -103,11 +107,11 @@ type statusDisplay struct {
 var cliFlags = []cliFlag{
 	{short: "-h", long: "--help", description: "Show help and exit"},
 	{short: "-v", long: "--version", description: "Show version and exit"},
-	{short: "-q", long: "--quiet", description: "Suppress alarm and status messages; countdown and title bar unaffected in TTY mode"},
-	{short: "-s", long: "--sound", description: "Force alarm playback on completion even in quiet/non-TTY mode"},
-	{short: "-f", long: "--sound-file", description: "Path to a custom audio file to play on completion (implies --sound)", takesValue: true},
+	{short: "-q", long: "--quiet", description: "Suppress alarm and status messages"},
 	{short: "-t", long: "--no-title", description: "Disable terminal title bar updates"},
-	{short: "-c", long: "--caffeinate", description: "Force sleep inhibition attempt even in non-TTY mode (macOS only)"},
+	{short: "-s", long: "--sound", description: "Force alarm even in quiet or non-TTY mode"},
+	{short: "-f", long: "--sound-file", description: "Custom audio file for completion alarm (implies --sound)", takesValue: true},
+	{short: "-c", long: "--caffeinate", description: "Prevent sleep even in non-TTY mode (macOS only)"},
 }
 
 func main() {
