@@ -38,6 +38,7 @@ const (
 		"  after 1.5h            after 14:30\n" +
 		"  after --quiet 5m      after 2:30 PM\n" +
 		"  after noon            after midnight\n" +
+		"  after -s 5m 2>/dev/null &  (background with alarm)\n" +
 		"\nTimes already past today are scheduled for tomorrow."
 	defaultVersion        = "dev"
 	develBuildInfoVersion = "(devel)"

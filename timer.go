@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 )
 
@@ -64,13 +65,14 @@ func runTimerWithAlarmStarter(ctx context.Context, cancel context.CancelCauseFun
 	if status.interactive && stdinIsTTY() {
 		tty, err := os.Open("/dev/tty")
 		if err == nil {
-			oldState, err := term.MakeRaw(int(tty.Fd()))
-			if err == nil {
+			if !isInForeground(tty.Fd()) {
+				_ = tty.Close()
+			} else if oldState, err := term.MakeRaw(int(tty.Fd())); err == nil {
 				var once sync.Once
 				restoreTerminal = func() {
 					once.Do(func() {
 						_ = term.Restore(int(tty.Fd()), oldState)
-						tty.Close()
+						_ = tty.Close()
 					})
 				}
 				defer restoreTerminal()
@@ -95,7 +97,7 @@ func runTimerWithAlarmStarter(ctx context.Context, cancel context.CancelCauseFun
 					}
 				}()
 			} else {
-				tty.Close()
+				_ = tty.Close()
 			}
 		}
 	}
@@ -186,4 +188,12 @@ func isTerminal(fd uintptr) bool {
 
 func stdinIsTTY() bool {
 	return isTerminal(os.Stdin.Fd())
+}
+
+func isInForeground(fd uintptr) bool {
+	pgrp, err := unix.IoctlGetInt(int(fd), unix.TIOCGPGRP)
+	if err != nil {
+		return true // assume foreground if we can't determine
+	}
+	return pgrp == unix.Getpgrp()
 }
