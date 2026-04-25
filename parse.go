@@ -14,6 +14,7 @@ func parseInvocation(args []string) (invocation, error) {
 		return invocation{mode: modeRun}, errUsage
 	}
 
+	args = preprocessAliases(args)
 	args = preprocessCombinedShortFlags(args)
 
 	inv := invocation{
@@ -100,6 +101,33 @@ func parseInvocation(args []string) (invocation, error) {
 	inv.duration = duration
 	inv.wallClockTarget = target
 	return inv, nil
+}
+
+// preprocessAliases rewrites bare-word aliases to their canonical flag forms
+// before any other parsing. Only args before "--" are rewritten.
+//
+// This is intentionally limited to help and version — two words users commonly
+// reach for before learning the flag interface. It is not a subcommand system
+// and should not grow into one.
+//
+//	"version" → "--version"
+//	"help"    → "--help"
+func preprocessAliases(args []string) []string {
+	aliases := map[string]string{
+		"version": "--version",
+		"help":    "--help",
+	}
+	out := make([]string, len(args))
+	copy(out, args)
+	for i := 1; i < len(out); i++ {
+		if out[i] == "--" {
+			break
+		}
+		if flag, ok := aliases[out[i]]; ok {
+			out[i] = flag
+		}
+	}
+	return out
 }
 
 func preprocessCombinedShortFlags(args []string) []string {

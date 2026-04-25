@@ -436,6 +436,11 @@ func TestParseInvocation_HelpAndVersionModes(t *testing.T) {
 		{name: "version with short awake returns version mode", args: cliArgs("--version", "-c"), want: invocation{mode: modeVersion}},
 		{name: "double dash then help token is positional and invalid duration", args: cliArgs("--", "--help"), wantErr: errInvalidDuration},
 		{name: "double dash then version token is positional and invalid duration", args: cliArgs("--", "--version"), wantErr: errInvalidDuration},
+		{name: "bare 'help' word is alias for --help", args: cliArgs("help"), want: invocation{mode: modeHelp}},
+		{name: "bare 'version' word is alias for --version", args: cliArgs("version"), want: invocation{mode: modeVersion}},
+		{name: "help alias takes precedence over version", args: cliArgs("help", "version"), want: invocation{mode: modeHelp}},
+		{name: "version alias after double dash is not rewritten", args: cliArgs("--", "version"), wantErr: errInvalidDuration},
+		{name: "help alias after double dash is not rewritten", args: cliArgs("--", "help"), wantErr: errInvalidDuration},
 	})
 }
 
